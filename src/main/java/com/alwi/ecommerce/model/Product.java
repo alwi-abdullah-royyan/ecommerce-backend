@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -20,7 +21,7 @@ public class Product {
     private Long id;
 
     @Column(name = "product_name", length = 255, nullable = false)
-    private String productName;
+    private String name;
 
     @Column(columnDefinition = "TEXT")
     private String description;
@@ -28,22 +29,27 @@ public class Product {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
-    @ManyToOne
-    @JoinColumn(name = "category_id", nullable = true, foreignKey = @ForeignKey(name = "fk_product_category"))
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
+    @OneToMany(mappedBy = "product")
+    private List<Cart> carts;
 
+    @Column(name = "image")
     private String image;
 
+    @Column(name = "total")
     private Integer total;
 
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     private Boolean disabled = false;
 
-    @Column(name = "created_at", updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     @PrePersist

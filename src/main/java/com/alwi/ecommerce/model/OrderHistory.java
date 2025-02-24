@@ -18,11 +18,11 @@ public class OrderHistory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "order_id", nullable = false, foreignKey = @ForeignKey(name = "fk_order_history_order"))
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
-    @Column(length = 50, nullable = false)
+    @Column(name = "status", length = 50, nullable = false)
     private String status;
 
     @Column(name = "date", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")

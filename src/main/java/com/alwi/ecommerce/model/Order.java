@@ -4,9 +4,10 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -19,11 +20,11 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "costumer_id", nullable = false, foreignKey = @ForeignKey(name = "fk_order_user"))
-    private User customer;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "costumer_id", nullable = false)
+    private User user;
 
-    @Column(length = 50, nullable = false)
+    @Column(name = "status", length = 50, nullable = false)
     private String status;
 
     @Column(name = "created_at", updatable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
@@ -31,6 +32,12 @@ public class Order {
 
     @Column(name = "updated_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderItem> orderItems;
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderHistory> orderHistory;
 
     @PrePersist
     protected void onCreate() {
