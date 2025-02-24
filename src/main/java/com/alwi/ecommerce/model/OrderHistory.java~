@@ -1,0 +1,4 @@
+package com.alwi.ecommerce.model;
+
+public class OrderHistory {
+}

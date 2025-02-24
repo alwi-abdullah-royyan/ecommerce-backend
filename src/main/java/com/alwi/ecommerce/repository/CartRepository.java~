@@ -1,0 +1,4 @@
+package com.alwi.ecommerce.repository;
+
+public interface CartRepository {
+}
