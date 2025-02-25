@@ -35,6 +35,7 @@ public class OrderService {
         response.setUserId(order.getUser().getId());
         response.setUsername(order.getUser().getUsername());
         response.setStatus(order.getStatus());
+        response.setTotalPrice(order.getTotalPrice());
         response.setCreatedAt(order.getCreatedAt());
         response.setUpdatedAt(order.getUpdatedAt());
         return response;

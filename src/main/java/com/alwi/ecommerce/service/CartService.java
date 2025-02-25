@@ -16,6 +16,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -54,37 +55,35 @@ public class CartService {
     @Transactional
     public CartResponse createOrUpdateCart(CartRequest cartRequest) {
         try {
-            System.out.println("Service called");
-
             User user = userRepository.findUserByUsername(cartRequest.getUsername())
                     .orElseThrow(() -> new DataNotFoundException("User not found: " + cartRequest.getUsername()));
-            System.out.println("User found: " + user.getUsername());
 
             Product product = productRepository.findById(cartRequest.getProductId())
                     .orElseThrow(() -> new DataNotFoundException("Product not found: " + cartRequest.getProductId()));
-            System.out.println("Product found: " + product.getName());
 
             Optional<Cart> existingCartOpt = cartRepository.findByUserAndProduct(user, product);
             Cart cart;
 
             if (existingCartOpt.isPresent()) {
-                System.out.println("Existing cart found");
                 cart = existingCartOpt.get();
-                cart.setTotal(cart.getTotal() + cartRequest.getTotal());
+                cart.setQty(cart.getQty() + cartRequest.getQty());
 
-                // 🛠️ Handle deletion if total is 0 or less
-                if (cart.getTotal() <= 0) {
-                    System.out.println("Total is 0 or less, deleting cart...");
+                // If quantity is zero or less, remove the cart item
+                if (cart.getQty() <= 0) {
                     delete(cart.getId());
                     return null;
                 }
+
             } else {
                 System.out.println("Creating a new cart");
                 cart = new Cart();
-                cart.setTotal(cartRequest.getTotal());
-                cart.setUser(user); // 🆕 Properly set user
-                cart.setProduct(product); // 🆕 Properly set product
+                cart.setQty(cartRequest.getQty());
+                cart.setUser(user);
+                cart.setProduct(product);
             }
+
+            BigDecimal totalPrice = product.getPrice().multiply(BigDecimal.valueOf(cart.getQty()));
+            cart.setPrice(totalPrice);
 
             Cart savedCart = cartRepository.save(cart);
             return convertToResponse(savedCart);
@@ -95,6 +94,7 @@ public class CartService {
             throw new RuntimeException("Error creating or updating cart", e);
         }
     }
+
 
 
     //delete
@@ -113,7 +113,8 @@ public class CartService {
     public static CartResponse convertToResponse(Cart cart) {
         CartResponse response = new CartResponse();
         response.setId(cart.getId());
-        response.setTotal(cart.getTotal());
+        response.setQty(cart.getQty());
+        response.setPrice(cart.getPrice());
         //user
         response.setUserId(cart.getUser().getId());
         response.setUserName(cart.getUser().getUsername());

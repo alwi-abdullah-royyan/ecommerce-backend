@@ -32,7 +32,8 @@ public class OrderItemService {
         OrderItemResponse response = new OrderItemResponse();
 
         response.setId(orderItem.getId());
-        response.setTotal(orderItem.getTotal());
+        response.setQty(orderItem.getQty());
+        response.setSubtotal(orderItem.getSubtotal());
 
         // Set Order Data
         if (orderItem.getOrder() != null) {

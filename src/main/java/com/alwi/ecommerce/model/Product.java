@@ -40,8 +40,8 @@ public class Product {
     @Column(name = "image")
     private String image;
 
-    @Column(name = "total")
-    private Integer total;
+    @Column(name = "qty")
+    private Integer qty;
 
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     private Boolean disabled = false;

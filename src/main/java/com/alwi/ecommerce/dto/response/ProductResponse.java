@@ -14,7 +14,7 @@ public class ProductResponse {
     private BigDecimal price;
     private CategoryData category;
     private String image;
-    private Integer total;
+    private Integer qty;
     private Boolean disabled;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

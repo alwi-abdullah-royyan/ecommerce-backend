@@ -1,10 +1,8 @@
 package com.alwi.ecommerce.service;
 
 import com.alwi.ecommerce.dto.response.ProductResponse;
-import com.alwi.ecommerce.dto.response.UserResponse;
 import com.alwi.ecommerce.exception.DataNotFoundException;
 import com.alwi.ecommerce.model.Product;
-import com.alwi.ecommerce.model.User;
 import com.alwi.ecommerce.repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -30,6 +28,7 @@ public class ProductService {
             throw new RuntimeException("Error find all cart",e);
         }
     }
+    
     public static ProductResponse convertToResponse(Product product) {
         ProductResponse response = new ProductResponse();
         response.setId(product.getId());
@@ -40,7 +39,7 @@ public class ProductService {
         response.setCategoryName(product.getCategory().getName());
         response.setCategoryId(product.getCategory().getId());
         response.setImage(product.getImage());
-        response.setTotal(product.getTotal());
+        response.setQty(product.getQty());
         response.setDisabled(product.getDisabled());
         response.setCreatedAt(product.getCreatedAt());
         response.setUpdatedAt(product.getUpdatedAt());

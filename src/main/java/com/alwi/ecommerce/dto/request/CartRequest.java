@@ -22,5 +22,5 @@ public class CartRequest {
 
     @NotNull(message = "Total is required")
     @Min(value = 1, message = "Total must be at least 1")
-    private Long total;
+    private Integer qty;
 }

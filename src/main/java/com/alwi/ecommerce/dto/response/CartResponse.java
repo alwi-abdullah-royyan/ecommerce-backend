@@ -11,7 +11,8 @@ public class CartResponse {
     private Long id;
     private UserData user;
     private ProductData product;
-    private Long total;
+    private BigDecimal price;
+    private Integer qty;
     public CartResponse(){
         this.user = new UserData();
         this.product=new ProductData();

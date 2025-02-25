@@ -11,7 +11,8 @@ public class OrderItemResponse {
     private OrderData order;
     private ProductData product;
     private String productName;
-    private Integer total;
+    private Integer qty;
+    private BigDecimal subtotal;
 
     public OrderItemResponse(){
         this.product = new ProductData();

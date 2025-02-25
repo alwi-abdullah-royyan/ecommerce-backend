@@ -2,6 +2,7 @@ package com.alwi.ecommerce.dto.response;
 
 import lombok.Data;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -10,7 +11,7 @@ public class OrderResponse {
     private Long id;
     private UserData user;
     private String status;
-
+    private BigDecimal totalPrice;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
