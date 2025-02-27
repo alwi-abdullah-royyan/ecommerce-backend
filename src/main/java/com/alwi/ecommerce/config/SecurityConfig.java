@@ -71,6 +71,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/order_item/{id}").authenticated()
                         //order history
                         .requestMatchers(HttpMethod.GET, "/api/order_history/{id}").authenticated()
+                        //category
+                        .requestMatchers(HttpMethod.GET, "/api/category/all","/api/category/{id}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/category").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/category/{id}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/category/{id}").hasRole("ADMIN")
                         // Default rule
                         .anyRequest().authenticated()
                 )

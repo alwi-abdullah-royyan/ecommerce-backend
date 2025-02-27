@@ -5,3 +5,5 @@ create category endpoints :
     - create category
     - update category
     - delete category
+
+clean the uneccessary try catch and error after all done
