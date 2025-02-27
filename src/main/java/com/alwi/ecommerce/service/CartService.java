@@ -3,6 +3,7 @@ package com.alwi.ecommerce.service;
 import com.alwi.ecommerce.dto.request.CartRequest;
 import com.alwi.ecommerce.dto.response.CartResponse;
 import com.alwi.ecommerce.exception.DataNotFoundException;
+import com.alwi.ecommerce.exception.UnauthorizedException;
 import com.alwi.ecommerce.model.Cart;
 import com.alwi.ecommerce.model.Product;
 import com.alwi.ecommerce.model.User;
@@ -14,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -28,35 +31,28 @@ public class CartService {
     private UserRepository userRepository;
     @Autowired
     private ProductRepository productRepository;
-
-    public Page<CartResponse> findAll(int page, int size) {
+    public Page<CartResponse> findByUserId(Authentication authentication, int page, int size) {
         try {
+            UserDetails auth = (UserDetails) authentication.getPrincipal();
+            User currentUser = userRepository.findUserByUsername(auth.getUsername())
+                    .orElseThrow(() -> new DataNotFoundException("Current user not found"));
             Pageable pageable = PageRequest.of(page, size);
-            Page<Cart> carts = cartRepository.findAll(pageable);
-            if (carts.isEmpty()){
-                throw new DataNotFoundException("Cart not found");
-            }
+            Page<Cart> carts = cartRepository.findByUserId(currentUser.getId(), pageable);
             return carts.map(CartService::convertToResponse);
-        } catch(DataNotFoundException e) {
+        } catch (DataNotFoundException e) {
             throw e;
-        } catch (Exception e) {
-            throw new RuntimeException("Error find all cart",e);
         }
-    }
-    public Page<CartResponse> findByUserId(UUID id, int page, int size) {
-        try {
-            Pageable pageable = PageRequest.of(page, size);
-            Page<Cart> carts = cartRepository.findByUserId(id, pageable);
-            return carts.map(CartService::convertToResponse);
-        } catch (Exception e) {
+        catch (Exception e) {
             throw new RuntimeException("Error finding cart",e);
         }
     }
     @Transactional
-    public CartResponse createOrUpdateCart(CartRequest cartRequest) {
+    public CartResponse createOrUpdateCart(Authentication authentication,CartRequest cartRequest) {
         try {
-            User user = userRepository.findUserByUsername(cartRequest.getUsername())
-                    .orElseThrow(() -> new DataNotFoundException("User not found: " + cartRequest.getUsername()));
+            UserDetails auth = (UserDetails) authentication.getPrincipal();
+
+            User user = userRepository.findUserByUsername(auth.getUsername())
+                    .orElseThrow(() -> new DataNotFoundException("Current user not found"));
 
             Product product = productRepository.findById(cartRequest.getProductId())
                     .orElseThrow(() -> new DataNotFoundException("Product not found: " + cartRequest.getProductId()));
@@ -66,20 +62,19 @@ public class CartService {
 
             if (existingCartOpt.isPresent()) {
                 cart = existingCartOpt.get();
-                cart.setQty(cart.getQty() + cartRequest.getQty());
+                cart.setQty(cartRequest.getQty());
 
-                // If quantity is zero or less, remove the cart item
                 if (cart.getQty() <= 0) {
-                    delete(cart.getId());
+                    delete(authentication, cart.getId());
                     return null;
                 }
-
             } else {
-                System.out.println("Creating a new cart");
                 cart = new Cart();
                 cart.setQty(cartRequest.getQty());
                 cart.setUser(user);
                 cart.setProduct(product);
+                cart.setChecked(true);
+                cart.setPrice(product.getPrice().multiply(BigDecimal.valueOf(cart.getQty())));
             }
 
             BigDecimal totalPrice = product.getPrice().multiply(BigDecimal.valueOf(cart.getQty()));
@@ -99,15 +94,44 @@ public class CartService {
 
     //delete
     @Transactional
-    public Boolean delete(Long id) {
+    public void delete(Authentication authentication,Long id) {
         try {
-            if (!cartRepository.existsById(id)) {
-                return false;
+            UserDetails auth = (UserDetails) authentication.getPrincipal();
+
+            User user = userRepository.findUserByUsername(auth.getUsername())
+                    .orElseThrow(() -> new DataNotFoundException("Current user not found"));
+            Cart cart = cartRepository.findById(id)
+                    .orElseThrow(() -> new DataNotFoundException("Cart not found: " + id));
+            if (user.getId() != cart.getUser().getId()) {
+                throw new UnauthorizedException("You are not authorized to delete this cart");
             }
             cartRepository.deleteById(id);
-            return true;
-        } catch (Exception e) {
+        } catch(DataNotFoundException e) {
+            throw e;
+        }catch (Exception e) {
             throw new RuntimeException("Error deleting cart",e);
+        }
+    }
+    @Transactional
+    public CartResponse checkCart(Authentication authentication,Long id,CartRequest cartRequest) {
+        try {
+            UserDetails auth = (UserDetails) authentication.getPrincipal();
+
+            User user = userRepository.findUserByUsername(auth.getUsername())
+                    .orElseThrow(() -> new DataNotFoundException("Current user not found"));
+            Cart cart = cartRepository.findById(id)
+                    .orElseThrow(() -> new DataNotFoundException("Cart not found: " + id));
+            if (user.getId() != cart.getUser().getId()) {
+                throw new UnauthorizedException("You are not authorized to check this cart");
+            }
+            System.out.println(cartRequest);
+            cart.setChecked(cartRequest.getChecked());
+            Cart savedCart = cartRepository.save(cart);
+            return convertToResponse(savedCart);
+        } catch(UnauthorizedException | DataNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("Error checking cart",e);
         }
     }
     public static CartResponse convertToResponse(Cart cart) {
@@ -115,6 +139,7 @@ public class CartService {
         response.setId(cart.getId());
         response.setQty(cart.getQty());
         response.setPrice(cart.getPrice());
+        response.setChecked(cart.getChecked());
         //user
         response.setUserId(cart.getUser().getId());
         response.setUserName(cart.getUser().getUsername());

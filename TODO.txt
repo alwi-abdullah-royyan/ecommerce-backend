@@ -1,0 +1,7 @@
+TODOS
+create category endpoints :
+    - get all categories
+    - get category by id
+    - create category
+    - update category
+    - delete category

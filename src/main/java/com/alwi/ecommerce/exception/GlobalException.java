@@ -22,6 +22,16 @@ public class GlobalException {
         logger.error("Validation error: {}", ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<String> handleUnauthorizedException(UnauthorizedException ex) {
+        logger.error("You are not authorized : {}", ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+    @ExceptionHandler(FileInvalidException.class)
+    public ResponseEntity<String> handleFileInvalidException(FileInvalidException ex) {
+        logger.error("You are not authorized : {}", ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    }
 
     // Optional: Handle all other exceptions to avoid exposing internal errors
     @ExceptionHandler(Exception.class)

@@ -1,10 +1,17 @@
 package com.alwi.ecommerce.dto.request;
 
-import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
+
+@Data
 public class ProductRequest {
-    @NotNull
     private Long id;
-
-    private Boolean disabled;
+    private String productName;
+    private String description;
+    private BigDecimal price;
+    private Long categoryId;
+    private MultipartFile image;
+    private int qty;
 }

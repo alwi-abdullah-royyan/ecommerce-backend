@@ -2,31 +2,45 @@ package com.alwi.ecommerce.service;
 
 import com.alwi.ecommerce.dto.response.OrderItemResponse;
 import com.alwi.ecommerce.exception.DataNotFoundException;
+import com.alwi.ecommerce.model.Order;
 import com.alwi.ecommerce.model.OrderItem;
+import com.alwi.ecommerce.model.User;
 import com.alwi.ecommerce.repository.OrderItemRepository;
+import com.alwi.ecommerce.repository.OrderRepository;
+import com.alwi.ecommerce.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class OrderItemService {
     @Autowired
     private OrderItemRepository orderItemRepository;
-    public Page<OrderItemResponse> findAll(int page, int size) {
-        try {
-            Pageable pageable = PageRequest.of(page, size);
-            Page<OrderItem> orderItems = orderItemRepository.findAll(pageable);
-            if (orderItems.isEmpty()){
-                throw new DataNotFoundException("Cart not found");
-            }
-            return orderItems.map(OrderItemService::convertToResponse);
-        } catch(DataNotFoundException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new RuntimeException("Error find all cart",e);
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private OrderRepository orderRepository;
+
+    public List<OrderItemResponse> findByOrder(Long id, Authentication authentication) {
+        UserDetails auth = (UserDetails) authentication.getPrincipal();
+        User user = userRepository.findUserByUsername(auth.getUsername())
+                .orElseThrow(() -> new DataNotFoundException("Current user not found"));
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new DataNotFoundException("Order not found"));
+        if (user.getRole().equals("ADMIN")) {
+            return orderItemRepository.findByOrder(order).stream().
+                    map(OrderItemService::convertToResponse).toList();
+        } else if(user.getRole().equals("COSTUMER") && order.getUser().getId().equals(user.getId())) {
+            return orderItemRepository.findByOrder(order).stream()
+                    .map(OrderItemService::convertToResponse).toList();
         }
+        throw new DataNotFoundException("Current user not found");
     }
     public static OrderItemResponse convertToResponse(OrderItem orderItem) {
         OrderItemResponse response = new OrderItemResponse();

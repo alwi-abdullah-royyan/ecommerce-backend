@@ -13,6 +13,7 @@ public class CartResponse {
     private ProductData product;
     private BigDecimal price;
     private Integer qty;
+    private Boolean checked;
     public CartResponse(){
         this.user = new UserData();
         this.product=new ProductData();

@@ -31,4 +31,6 @@ public class Cart {
 
     @Column(name = "qty", nullable = false, columnDefinition = "INT DEFAULT 1")
     private Integer qty = 1;
+    @Column(name ="checked", nullable = false)
+    private Boolean checked;
 }
