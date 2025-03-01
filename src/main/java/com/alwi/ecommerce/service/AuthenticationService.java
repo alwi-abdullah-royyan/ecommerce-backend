@@ -66,7 +66,16 @@ public class AuthenticationService {
         }
     }
 
-        public UserResponse convertToResponse(User user) {
+    //refresh token
+    public AuthResponse refreshToken(Authentication authentication) {
+        UserDetails auth = (UserDetails) authentication.getPrincipal();
+        User currentUser = userRepository.findUserByUsername(auth.getUsername())
+                .orElseThrow(() -> new DataNotFoundException("Current user not found"));
+        String token = jwtUtil.generateToken(currentUser);
+        return new AuthResponse(token);
+    }
+
+    public UserResponse convertToResponse(User user) {
         UserResponse response = new UserResponse();
         response.setId(user.getId());
         response.setUsername(user.getUsername());

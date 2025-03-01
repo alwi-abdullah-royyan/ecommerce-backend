@@ -58,7 +58,7 @@ public class SecurityConfig {
                         // Cart Endpoints
                         .requestMatchers(HttpMethod.PUT, "/api/cart/check/{id}").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/cart/manage").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/cart/id").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/cart/{id}").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/cart/{id}").authenticated()
                         //ORDER
                         .requestMatchers(HttpMethod.PUT, "/api/order/update/{id}").hasRole("ADMIN")
@@ -72,7 +72,7 @@ public class SecurityConfig {
                         //order history
                         .requestMatchers(HttpMethod.GET, "/api/order_history/{id}").authenticated()
                         //category
-                        .requestMatchers(HttpMethod.GET, "/api/category/all","/api/category/{id}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/category/all","/api/category/{id}").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/category").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/category/{id}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/category/{id}").hasRole("ADMIN")
