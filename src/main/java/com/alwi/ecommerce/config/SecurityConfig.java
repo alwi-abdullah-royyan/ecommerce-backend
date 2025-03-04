@@ -64,8 +64,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/order/update/{id}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/order/status_can_change_to/{id}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/order/detail/{id}",
-                                "/api/order/create").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/order/all").hasRole("ADMIN")
+                                "/api/order/create","/api/order/user/filter").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/order/all","/api/oder/filter").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/order/delete/{id}").hasRole("ADMIN")
                         //ORDER ITEM
                         .requestMatchers(HttpMethod.GET, "/api/order_item/{id}").authenticated()

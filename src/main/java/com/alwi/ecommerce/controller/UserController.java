@@ -101,7 +101,7 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
-    @PostMapping("/update/{id}")
+    @PutMapping("/update/{id}")
     private ResponseEntity<?> update(
             @PathVariable UUID id,
             @RequestBody UserRequest userRequest,

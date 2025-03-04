@@ -42,4 +42,10 @@ public class OrderStatusUtil {
                 return Collections.emptyList();
         }
     }
+    public static boolean willCauseProductReturn(OrderStatus newStatus) {
+        return newStatus == OrderStatus.RETURNED
+                || newStatus == OrderStatus.CANCELLED
+                || newStatus == OrderStatus.REFUNDED;
+    }
+
 }

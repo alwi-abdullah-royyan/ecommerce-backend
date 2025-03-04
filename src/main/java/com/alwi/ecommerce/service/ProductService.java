@@ -1,6 +1,5 @@
 package com.alwi.ecommerce.service;
 
-import com.alwi.ecommerce.dto.request.ProductFilterRequest;
 import com.alwi.ecommerce.dto.request.ProductRequest;
 import com.alwi.ecommerce.dto.response.ProductResponse;
 import com.alwi.ecommerce.exception.DataNotFoundException;
@@ -24,7 +23,6 @@ import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 

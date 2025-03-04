@@ -1,5 +1,6 @@
 package com.alwi.ecommerce.service;
 
+import com.alwi.ecommerce.dto.request.OrderRequest;
 import com.alwi.ecommerce.dto.response.OrderResponse;
 import com.alwi.ecommerce.exception.DataNotFoundException;
 import com.alwi.ecommerce.exception.UnauthorizedException;
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.alwi.ecommerce.util.OrderStatusUtil.getAllowedStatusTransitions;
+import static com.alwi.ecommerce.util.OrderStatusUtil.willCauseProductReturn;
 
 @Service
 public class OrderService {
@@ -78,6 +80,30 @@ public class OrderService {
         UserDetails auth = (UserDetails) authentication.getPrincipal();
         return userRepository.findUserByUsername(auth.getUsername())
                 .orElseThrow(() -> new DataNotFoundException("Current user not found"));
+    }
+    public Page<OrderResponse> getOrderByUser(int page, int size, Authentication authentication){
+        User user = getCurrentUser(authentication);
+        Pageable pageable = PageRequest.of(page, size);
+
+        Page<Order> order = orderRepository.findByUser( user,pageable );
+        return order.map(OrderService::convertToResponse);
+    }
+    public Page<OrderResponse> getOrderByUserAndStatus(int page, int size, String status, Authentication authentication){
+        User user = getCurrentUser(authentication);
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Order> order = orderRepository.findByUserAndStatus(user, status, pageable);
+
+        return order.map(OrderService::convertToResponse);
+    }
+    public Page<OrderResponse> getOrderByStatus (int page, int size, String status, Authentication authentication){
+        User user = getCurrentUser(authentication);
+        if (user.getRole().equals("CUSTOMER")) {
+            throw new UnauthorizedException("You are not authorized to view this order");
+        }
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Order> order = orderRepository.findByStatus(status, pageable);
+
+        return order.map(OrderService::convertToResponse);
     }
 //=====================METHODS NEEDED FOR CREATE ORDER==========================
     @Transactional
@@ -165,27 +191,28 @@ public class OrderService {
 
 //====================UPDATE ORDER METHODS==========================
     public OrderResponse updateStatus(Long id, String status) {
-        System.out.println("checking status");
         OrderStatus newStatus = parseOrderStatus(status);
-        System.out.println("checking order");
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new DataNotFoundException("Order not found: " + id));
-        System.out.println("checking current order status");
         OrderStatus currentStatus = OrderStatus.valueOf(order.getStatus());
 
         // Validate if the new status is allowed
-        System.out.println("validating changed status");
         List<OrderStatus> allowedStatuses = getAllowedStatusTransitions(currentStatus);
-        System.out.println("validating changed status");
         if (!allowedStatuses.contains(newStatus)) {
             throw new ValidationException("Invalid status transition from " + currentStatus + " to " + newStatus);
         }
-        System.out.println("updating order status");
         order.setStatus(newStatus.name());
-        System.out.println("save changed");
         Order updatedOrder = orderRepository.save(order);
-        System.out.println("record the change");
         createHistory(order);
+        //returning item
+        if(willCauseProductReturn(newStatus)){
+            List<OrderItem> orderItem = orderItemRepository.findByOrder(updatedOrder);
+
+            for (OrderItem orderItems : orderItem) {
+                int newQty = orderItems.getProduct().getQty() + orderItems.getQty();
+                productService.updateQty(orderItems.getProduct().getId(), newQty);
+            }
+        }
 
         return convertToResponse(updatedOrder);
     }

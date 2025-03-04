@@ -89,13 +89,13 @@ public class UserService implements UserDetailsService{
                 throw new UnauthorizedException("You are not authorized to update this user");
             }
 
-            if (userRequest.getUsername() != null) {
+            if (userRequest.getUsername() != null && !userToUpdate.getUsername().equals(userRequest.getUsername())) {
                 if (userRepository.findUserByUsername(userRequest.getUsername()).isPresent())
                     throw new IllegalArgumentException("Username already exists");
                 userToUpdate.setUsername(userRequest.getUsername());
             }
 
-            if (userRequest.getEmail() != null) {
+            if (userRequest.getEmail() != null && !userToUpdate.getEmail().equals(userRequest.getEmail())) {
                 if (userRepository.findUserByEmail(userRequest.getEmail()).isPresent())
                     throw new IllegalArgumentException("Email already exists");
                 userToUpdate.setEmail(userRequest.getEmail());
